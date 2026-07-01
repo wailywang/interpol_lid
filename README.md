@@ -12,7 +12,7 @@ Fine-tuned NVIDIA NeMo AmberNet, 19-class output, with optional English accent c
 | **VAD + LID pipeline** | Silero VAD 检测语音段 → AmberNet 19-class LID → 后处理（窗口化、合并、island smoothing） |
 | **AmberNet fine-tuning** | 在 NVIDIA NeMo AmberNet 上针对 19 个语种微调，含 `unknown` 类 |
 | **Singlish accent head** | 二分类头（`en` vs `en_sg`），接在 LID 之后，专门识别新加坡英语 |
-| **CommonAccent head** | 16-class 英语口音分类器（SpeechBrain ECAPA），将 `en` 细化为具体口音 |
+| **CommonAccent head** | 16-class 英语口音分类器（Common Voice），将 `en` 细化为具体口音 |
 | **Rotating manifests** | 每 epoch 换一批训练数据（50 h/epoch），避免过拟合，共 20 epoch |
 
 ---
@@ -26,8 +26,6 @@ Fine-tuned NVIDIA NeMo AmberNet, 19-class output, with optional English accent c
 | M03 | `20260513_M03_ambernet_lid_19class_unknown_rotating_encoder_frozen_15epoch.nemo` | 加入 `unknown` 类，共 19 class，15 epoch |
 | M04 | `20260517_M04_ambernet_lid_19class_fixed_15epoch.nemo` | 修复数据 bug，15 epoch |
 | **M05** | `20260701_M05_ambernet_lid_19class_oversample_20epoch.nemo` | 数据稀少语种 oversample，20 epoch，**当前推荐** |
-
-AmberNet checkpoint 路径：`/export/home2/wa0009xi/ots-lid/checkpoints/`
 
 ### CommonAccent
 
