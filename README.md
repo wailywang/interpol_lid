@@ -132,9 +132,11 @@ interpol_lid/
     ├── finetune_ambernet_lid.py             # AmberNet finetune 核心脚本
     ├── eval_ambernet_lid.py                 # LID 评估（acc / confusion matrix）
     ├── eval_singlish_accent_head.py         # Singlish head 评估 + threshold sweep
+    ├── generate_all_manifests.sh                # ★ 一键生成所有 train/val/eval manifest
     ├── generate_rotating_19class_en_cv_unknown_oversample_manifests.sh
     │                                        # 生成 M05 同款训练 manifest（oversample）
-    ├── prepare_full_data_rotating_lid_epochs.py   # 核心 manifest 构建逻辑
+    ├── prepare_balanced_lid_manifests.py          # Step 1: VoxLingua + CV Cantonese 基础 split
+    ├── prepare_full_data_rotating_lid_epochs.py   # 核心 manifest 构建逻辑（train）
     ├── prepare_rotating_balanced_manifest_epochs.py
     ├── prepare_19class_unknown_val_eval_manifests.py
     ├── prepare_en_cv_mixed_val_eval.py
@@ -230,14 +232,27 @@ curl http://localhost:8000/health
 
 ## 训练 M05（复现）
 
-### 1. 生成训练 manifest
+### 1. 生成所有 manifest（train / val / eval 一键生成）
 
 ```bash
-cd /export/home2/wa0009xi/ots-lid
+# 在 ots-lid 项目根目录下运行
+bash scripts/generate_all_manifests.sh
+```
 
-bash scripts/generate_rotating_19class_en_cv_unknown_oversample_manifests.sh
-# 输出到 manifests/full_rotating_50h_19class_en_cv_unknown_oversample_epochs/
-# 共 20 个 epoch manifest，每个约 50 h
+脚本会依次完成：VoxLingua + CV Cantonese 基础 split → 混入 CV English → 加入 unknown 类 → 生成 20 epoch 训练 manifest。
+
+数据路径默认为 `/dataset/yw500/data`，如需覆盖：
+
+```bash
+DATA_ROOT=/your/data/path bash scripts/generate_all_manifests.sh
+```
+
+输出：
+
+```
+train : manifests/full_rotating_50h_19class_en_cv_unknown_oversample_epochs/lid_train_epoch{00..19}_cap50h_3s.json
+val   : manifests/heldout_19class_en_cv_unknown/lid_val_19class_3s.json
+eval  : manifests/heldout_19class_en_cv_unknown/lid_eval_19class_3s.json
 ```
 
 ### 2. Finetune（encoder frozen，推荐）
@@ -246,8 +261,8 @@ bash scripts/generate_rotating_19class_en_cv_unknown_oversample_manifests.sh
 bash run_finetune_encoder_frozen.sh \
     --run_name 20260701_M05_ambernet_lid_19class_oversample_20epoch \
     --train_manifest manifests/full_rotating_50h_19class_en_cv_unknown_oversample_epochs/lid_train_epoch{epoch:02d}_cap50h_3s.json \
-    --val_manifest manifests/lid_val_en_cv_mix_3s.json \
-    --eval_manifest manifests/lid_eval_en_cv_mix_3s.json \
+    --val_manifest manifests/heldout_19class_en_cv_unknown/lid_val_19class_3s.json \
+    --eval_manifest manifests/heldout_19class_en_cv_unknown/lid_eval_19class_3s.json \
     --max_epochs 20 \
     --batch_size 128 \
     --lr 1e-4 \
